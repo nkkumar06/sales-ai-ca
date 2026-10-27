@@ -12,7 +12,7 @@ from src.data.databricks_client import get_connection
 
 logger = logging.getLogger("sales_forecasting_api.db")
 
-FORECAST_TABLE = "sales_ai.gold.forecast_results"
+FORECAST_TABLE = "sales_nk.gold.forecast_results"
 
 FORECAST_COLUMNS = [
     "forecast_id",
@@ -36,11 +36,11 @@ FORECAST_COLUMNS = [
 
 HISTORY_QUERY = """
     SELECT date, units_sold, product_id, store_id
-    FROM sales_ai.gold.sales_features
+    FROM sales_nk.gold.sales_features
     WHERE product_id = :product_id
       AND store_id = :store_id
       AND date >= date_sub(
-          (SELECT MAX(date) FROM sales_ai.gold.sales_features
+          (SELECT MAX(date) FROM sales_nk.gold.sales_features
            WHERE product_id = :product_id AND store_id = :store_id),
           :history_days
       )
@@ -49,7 +49,7 @@ HISTORY_QUERY = """
 
 FORECAST_QUERY = """
     SELECT forecast_date, predicted_units, product_id, store_id
-    FROM sales_ai.gold.forecast_results
+    FROM sales_nk.gold.forecast_results
     WHERE product_id = :product_id
       AND store_id = :store_id
     ORDER BY forecast_date
@@ -62,11 +62,11 @@ RECENT_FEATURES_QUERY = """
     SELECT date, units_sold, trend_7d, trend_28d, yoy_growth_pct, mom_growth_pct,
            rolling_mean_28, promotion_flag, days_since_last_promotion,
            holiday_flag, holiday_type, major_event_flag
-    FROM sales_ai.gold.sales_features
+    FROM sales_nk.gold.sales_features
     WHERE product_id = :product_id
       AND store_id = :store_id
       AND date >= date_sub(
-          (SELECT MAX(date) FROM sales_ai.gold.sales_features
+          (SELECT MAX(date) FROM sales_nk.gold.sales_features
            WHERE product_id = :product_id AND store_id = :store_id),
           :days
       )
@@ -75,7 +75,7 @@ RECENT_FEATURES_QUERY = """
 
 PRODUCT_STATIC_QUERY = """
     SELECT category, lifecycle_status, demand_class, price_elasticity_tier
-    FROM sales_ai.silver.products
+    FROM sales_nk.silver.products
     WHERE product_id = :product_id
 """
 
@@ -83,13 +83,13 @@ PRODUCT_STATIC_QUERY = """
 
 PRODUCTS_LIST_QUERY = """
     SELECT product_id, product_name, category
-    FROM sales_ai.silver.products
+    FROM sales_nk.silver.products
     ORDER BY product_id
 """
 
 STORES_LIST_QUERY = """
     SELECT store_id, store_name, city, region
-    FROM sales_ai.silver.stores
+    FROM sales_nk.silver.stores
     ORDER BY store_id
 """
 
@@ -100,45 +100,45 @@ STORES_LIST_QUERY = """
 
 TOP_CATEGORY_QUERY = """
     SELECT category, SUM(units_sold) AS total_units
-    FROM sales_ai.gold.sales_features
-    WHERE date >= date_sub((SELECT MAX(date) FROM sales_ai.gold.sales_features), :days)
+    FROM sales_nk.gold.sales_features
+    WHERE date >= date_sub((SELECT MAX(date) FROM sales_nk.gold.sales_features), :days)
     GROUP BY category
     ORDER BY total_units DESC
 """
 
 TOP_CATEGORY_BY_STORE_QUERY = """
     SELECT category, SUM(units_sold) AS total_units
-    FROM sales_ai.gold.sales_features
+    FROM sales_nk.gold.sales_features
     WHERE store_id = :store_id
-      AND date >= date_sub((SELECT MAX(date) FROM sales_ai.gold.sales_features), :days)
+      AND date >= date_sub((SELECT MAX(date) FROM sales_nk.gold.sales_features), :days)
     GROUP BY category
     ORDER BY total_units DESC
 """
 
 TOP_PRODUCT_QUERY = """
     SELECT sf.product_id, p.product_name, SUM(sf.units_sold) AS total_units
-    FROM sales_ai.gold.sales_features sf
-    JOIN sales_ai.silver.products p ON p.product_id = sf.product_id
-    WHERE sf.date >= date_sub((SELECT MAX(date) FROM sales_ai.gold.sales_features), :days)
+    FROM sales_nk.gold.sales_features sf
+    JOIN sales_nk.silver.products p ON p.product_id = sf.product_id
+    WHERE sf.date >= date_sub((SELECT MAX(date) FROM sales_nk.gold.sales_features), :days)
     GROUP BY sf.product_id, p.product_name
     ORDER BY total_units DESC
 """
 
 TOP_PRODUCT_BY_STORE_QUERY = """
     SELECT sf.product_id, p.product_name, SUM(sf.units_sold) AS total_units
-    FROM sales_ai.gold.sales_features sf
-    JOIN sales_ai.silver.products p ON p.product_id = sf.product_id
+    FROM sales_nk.gold.sales_features sf
+    JOIN sales_nk.silver.products p ON p.product_id = sf.product_id
     WHERE sf.store_id = :store_id
-      AND sf.date >= date_sub((SELECT MAX(date) FROM sales_ai.gold.sales_features), :days)
+      AND sf.date >= date_sub((SELECT MAX(date) FROM sales_nk.gold.sales_features), :days)
     GROUP BY sf.product_id, p.product_name
     ORDER BY total_units DESC
 """
 
 CATEGORY_COMPARISON_QUERY = """
     SELECT category, SUM(units_sold) AS total_units, AVG(units_sold) AS avg_daily_units
-    FROM sales_ai.gold.sales_features
+    FROM sales_nk.gold.sales_features
     WHERE category IN (:category_a, :category_b)
-      AND date >= date_sub((SELECT MAX(date) FROM sales_ai.gold.sales_features), :days)
+      AND date >= date_sub((SELECT MAX(date) FROM sales_nk.gold.sales_features), :days)
     GROUP BY category
 """
 
@@ -151,9 +151,9 @@ STORE_PERFORMANCE_QUERY = """
              AND sf.date < date_sub(anchor.max_date, :recent_days)
             THEN sf.units_sold
         END) AS baseline_avg
-    FROM sales_ai.gold.sales_features sf
-    JOIN sales_ai.silver.stores s ON s.store_id = sf.store_id
-    CROSS JOIN (SELECT MAX(date) AS max_date FROM sales_ai.gold.sales_features) anchor
+    FROM sales_nk.gold.sales_features sf
+    JOIN sales_nk.silver.stores s ON s.store_id = sf.store_id
+    CROSS JOIN (SELECT MAX(date) AS max_date FROM sales_nk.gold.sales_features) anchor
     WHERE sf.store_id = :store_id
     GROUP BY s.store_name
 """
@@ -162,11 +162,11 @@ TRENDING_DOWN_PRODUCTS_QUERY = """
     WITH latest AS (
         SELECT product_id, store_id, date, mom_growth_pct,
                ROW_NUMBER() OVER (PARTITION BY product_id, store_id ORDER BY date DESC) AS rn
-        FROM sales_ai.gold.sales_features
+        FROM sales_nk.gold.sales_features
     )
     SELECT l.product_id, p.product_name, AVG(l.mom_growth_pct) AS avg_mom_growth_pct
     FROM latest l
-    JOIN sales_ai.silver.products p ON p.product_id = l.product_id
+    JOIN sales_nk.silver.products p ON p.product_id = l.product_id
     WHERE l.rn = 1
     GROUP BY l.product_id, p.product_name
     HAVING AVG(l.mom_growth_pct) <= :threshold_pct
@@ -177,11 +177,11 @@ TRENDING_DOWN_STORES_QUERY = """
     WITH latest AS (
         SELECT store_id, product_id, date, mom_growth_pct,
                ROW_NUMBER() OVER (PARTITION BY product_id, store_id ORDER BY date DESC) AS rn
-        FROM sales_ai.gold.sales_features
+        FROM sales_nk.gold.sales_features
     )
     SELECT l.store_id, s.store_name, AVG(l.mom_growth_pct) AS avg_mom_growth_pct
     FROM latest l
-    JOIN sales_ai.silver.stores s ON s.store_id = l.store_id
+    JOIN sales_nk.silver.stores s ON s.store_id = l.store_id
     WHERE l.rn = 1
     GROUP BY l.store_id, s.store_name
     HAVING AVG(l.mom_growth_pct) <= :threshold_pct
@@ -191,8 +191,8 @@ TRENDING_DOWN_STORES_QUERY = """
 PREDICTED_REVENUE_QUERY = """
     SELECT SUM(fr.predicted_units * p.base_price) AS total_predicted_revenue,
            SUM(fr.predicted_units) AS total_predicted_units
-    FROM sales_ai.gold.forecast_results fr
-    JOIN sales_ai.silver.products p ON p.product_id = fr.product_id
+    FROM sales_nk.gold.forecast_results fr
+    JOIN sales_nk.silver.products p ON p.product_id = fr.product_id
 """
 
 
@@ -285,7 +285,7 @@ def fetch_distinct_products() -> list[dict[str, Any]]:
 
 
 def fetch_history_actuals(product_id: str, store_id: str, history_days: int) -> list[dict[str, Any]]:
-    """Real observed sales for one series, from sales_ai.gold.sales_features --
+    """Real observed sales for one series, from sales_nk.gold.sales_features --
     the last `history_days` days relative to that series' own most recent date."""
 
     return run_query(
@@ -295,14 +295,14 @@ def fetch_history_actuals(product_id: str, store_id: str, history_days: int) -> 
 
 
 def fetch_forecast_predictions(product_id: str, store_id: str) -> list[dict[str, Any]]:
-    """Model output for one series, from sales_ai.gold.forecast_results."""
+    """Model output for one series, from sales_nk.gold.forecast_results."""
 
     return run_query(FORECAST_QUERY, {"product_id": product_id, "store_id": store_id})
 
 
 def fetch_recent_sales_features(product_id: str, store_id: str, days: int = 90) -> list[dict[str, Any]]:
     """Recent actuals + engineered features for one series, from
-    sales_ai.gold.sales_features -- feeds the /forecast/explain context builder."""
+    sales_nk.gold.sales_features -- feeds the /forecast/explain context builder."""
 
     return run_query(
         RECENT_FEATURES_QUERY,
@@ -312,7 +312,7 @@ def fetch_recent_sales_features(product_id: str, store_id: str, days: int = 90) 
 
 def fetch_product_static(product_id: str) -> Optional[dict[str, Any]]:
     """Static product context (category, lifecycle_status, demand_class,
-    price_elasticity_tier) from sales_ai.silver.products, or None if unknown."""
+    price_elasticity_tier) from sales_nk.silver.products, or None if unknown."""
 
     rows = run_query(PRODUCT_STATIC_QUERY, {"product_id": product_id})
     return rows[0] if rows else None

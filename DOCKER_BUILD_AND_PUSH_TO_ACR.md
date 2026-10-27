@@ -60,7 +60,7 @@ Navigate to backend directory and build:
 
 ```bash
 cd backend
-docker build -t sales_ai_bknd .
+docker build -t sales_nk_bknd .
 cd ..
 ```
 
@@ -73,7 +73,7 @@ docker images
 Expected output:
 ```
 REPOSITORY       TAG       IMAGE ID
-sales_ai_bknd    latest    <image-id>
+sales_nk_bknd    latest    <image-id>
 ```
 
 ---
@@ -83,7 +83,7 @@ sales_ai_bknd    latest    <image-id>
 Run the backend container:
 
 ```bash
-docker run -p 8000:8000 sales_ai_bknd
+docker run -p 8000:8000 sales_nk_bknd
 ```
 
 Test the backend:
@@ -98,7 +98,7 @@ Stop the container: `Ctrl + C`
 ### Step 3: Tag Backend Image for ACR
 
 ```bash
-docker tag sales_ai_bknd:latest salesaiforecasting.azurecr.io/sales_ai_bknd:v1
+docker tag sales_nk_bknd:latest salesaiforecasting.azurecr.io/sales_nk_bknd:v1
 ```
 
 Verify the tagged image:
@@ -110,7 +110,7 @@ docker images
 Expected output:
 ```
 REPOSITORY                                        TAG       IMAGE ID
-salesaiforecasting.azurecr.io/sales_ai_bknd      v1        <image-id>
+salesaiforecasting.azurecr.io/sales_nk_bknd      v1        <image-id>
 ```
 
 ---
@@ -120,13 +120,13 @@ salesaiforecasting.azurecr.io/sales_ai_bknd      v1        <image-id>
 Push the image:
 
 ```bash
-docker push salesaiforecasting.azurecr.io/sales_ai_bknd:v1
+docker push salesaiforecasting.azurecr.io/sales_nk_bknd:v1
 ```
 
 Verify the image was pushed:
 
 ```bash
-az acr repository show-tags --name salesaiforecasting --repository sales_ai_bknd
+az acr repository show-tags --name salesaiforecasting --repository sales_nk_bknd
 ```
 
 ---
@@ -139,7 +139,7 @@ Navigate to frontend directory and build:
 
 ```bash
 cd frontend
-docker build -t sales_ai_fntd .
+docker build -t sales_nk_fntd .
 cd ..
 ```
 
@@ -152,7 +152,7 @@ docker images
 Expected output:
 ```
 REPOSITORY       TAG       IMAGE ID
-sales_ai_fntd    latest    <image-id>
+sales_nk_fntd    latest    <image-id>
 ```
 
 ---
@@ -162,7 +162,7 @@ sales_ai_fntd    latest    <image-id>
 Run the frontend container:
 
 ```bash
-docker run -p 3000:80 sales_ai_fntd
+docker run -p 3000:80 sales_nk_fntd
 ```
 
 Test the frontend:
@@ -177,7 +177,7 @@ Stop the container: `Ctrl + C`
 ### Step 3: Tag Frontend Image for ACR
 
 ```bash
-docker tag sales_ai_fntd:latest salesaiforecasting.azurecr.io/sales_ai_fntd:v1
+docker tag sales_nk_fntd:latest salesaiforecasting.azurecr.io/sales_nk_fntd:v1
 ```
 
 Verify the tagged image:
@@ -189,7 +189,7 @@ docker images
 Expected output:
 ```
 REPOSITORY                                        TAG       IMAGE ID
-salesaiforecasting.azurecr.io/sales_ai_fntd      v1        <image-id>
+salesaiforecasting.azurecr.io/sales_nk_fntd      v1        <image-id>
 ```
 
 ---
@@ -199,13 +199,13 @@ salesaiforecasting.azurecr.io/sales_ai_fntd      v1        <image-id>
 Push the image:
 
 ```bash
-docker push salesaiforecasting.azurecr.io/sales_ai_fntd:v1
+docker push salesaiforecasting.azurecr.io/sales_nk_fntd:v1
 ```
 
 Verify the image was pushed:
 
 ```bash
-az acr repository show-tags --name salesaiforecasting --repository sales_ai_fntd
+az acr repository show-tags --name salesaiforecasting --repository sales_nk_fntd
 ```
 
 ---
@@ -236,32 +236,32 @@ az acr repository list --name salesaiforecasting --output table
 
 ```bash
 # Build
-cd backend && docker build -t sales_ai_bknd . && cd ..
+cd backend && docker build -t sales_nk_bknd . && cd ..
 
 # Tag
-docker tag sales_ai_bknd:latest salesaiforecasting.azurecr.io/sales_ai_bknd:v1
+docker tag sales_nk_bknd:latest salesaiforecasting.azurecr.io/sales_nk_bknd:v1
 
 # Push
-docker push salesaiforecasting.azurecr.io/sales_ai_bknd:v1
+docker push salesaiforecasting.azurecr.io/sales_nk_bknd:v1
 
 # Verify
-az acr repository show-tags --name salesaiforecasting --repository sales_ai_bknd
+az acr repository show-tags --name salesaiforecasting --repository sales_nk_bknd
 ```
 
 ### Frontend Commands
 
 ```bash
 # Build (with backend API URL)
-cd frontend && docker build --build-arg VITE_API_BASE_URL=https://sales-ai-backend.lemonsand-3ac2a116.westus2.azurecontainerapps.io -t sales_ai_fntd:v2 . && cd ..
+cd frontend && docker build --build-arg VITE_API_BASE_URL=https://sales-ai-backend.lemonsand-3ac2a116.westus2.azurecontainerapps.io -t sales_nk_fntd:v2 . && cd ..
 
 # Tag
-docker tag sales_ai_fntd:v2 salesaiforecasting.azurecr.io/sales_ai_fntd:v2
+docker tag sales_nk_fntd:v2 salesaiforecasting.azurecr.io/sales_nk_fntd:v2
 
 # Push
-docker push salesaiforecasting.azurecr.io/sales_ai_fntd:v2
+docker push salesaiforecasting.azurecr.io/sales_nk_fntd:v2
 
 # Verify
-az acr repository show-tags --name salesaiforecasting --repository sales_ai_fntd
+az acr repository show-tags --name salesaiforecasting --repository sales_nk_fntd
 ```
 
 **Note:** Replace `VITE_API_BASE_URL` with your actual backend Container Apps URL if different.

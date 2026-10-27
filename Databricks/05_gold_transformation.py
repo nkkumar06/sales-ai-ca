@@ -35,7 +35,7 @@
 # MAGIC as model features — because we're training one global model rather than
 # MAGIC one model per category.
 # MAGIC
-# MAGIC Output: `sales_ai.gold.sales_features`
+# MAGIC Output: `sales_nk.gold.sales_features`
 
 # COMMAND ----------
 
@@ -47,7 +47,7 @@
 from pyspark.sql import functions as F
 from pyspark.sql.window import Window
 
-CATALOG = "sales_ai"
+CATALOG = "sales_nk"
 SILVER_SCHEMA = "silver"
 GOLD_SCHEMA = "gold"
 
@@ -677,12 +677,12 @@ print("Gold Delta table created successfully.")
 # COMMAND ----------
 
 # MAGIC %sql
-# MAGIC SHOW TABLES IN sales_ai.gold;
+# MAGIC SHOW TABLES IN sales_nk.gold;
 
 # COMMAND ----------
 
 display(
-    spark.table("sales_ai.gold.sales_features")
+    spark.table("sales_nk.gold.sales_features")
     .orderBy("product_id", "store_id", "date")
     .limit(20)
 )
@@ -690,5 +690,5 @@ display(
 # COMMAND ----------
 
 print("Gold transformation pipeline completed successfully.")
-print(f"sales_ai.gold.sales_features is ready for model training "
+print(f"sales_nk.gold.sales_features is ready for model training "
       f"({len(gold_final_columns)} columns, {gold_df.count():,} rows).")

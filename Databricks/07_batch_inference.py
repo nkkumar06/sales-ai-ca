@@ -11,10 +11,10 @@
 # MAGIC %md
 # MAGIC ### Objective
 # MAGIC
-# MAGIC This notebook loads the **Champion** model from the Unity Catalog Model
+# MAGIC This notebook loads the **Awesome** model from the Unity Catalog Model
 # MAGIC Registry and generates a 30-day-ahead forecast for every
 # MAGIC `(product_id, store_id)` series, writing the result to
-# MAGIC `sales_ai.gold.forecast_results` — the table the GenAI microservice and
+# MAGIC `sales_nk.gold.forecast_results` — the table the GenAI microservice and
 # MAGIC the UI dashboard both read from.
 # MAGIC
 # MAGIC **This uses recursive (iterative) forecasting**, as discussed earlier:
@@ -54,12 +54,12 @@ import numpy as np
 import pandas as pd
 import mlflow
 
-CATALOG = "sales_ai"
+CATALOG = "sales_nk"
 SILVER_SCHEMA = "silver"
 GOLD_SCHEMA = "gold"
 
 MODEL_NAME = f"{CATALOG}.{GOLD_SCHEMA}.sales_forecasting_lgbm"
-MODEL_ALIAS = "Champion"
+MODEL_ALIAS = "Awesome"
 FORECAST_HORIZON_DAYS = 30
 
 mlflow.set_registry_uri("databricks-uc")
@@ -67,7 +67,7 @@ mlflow.set_registry_uri("databricks-uc")
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC ### Load the Champion Model
+# MAGIC ### Load the Awesome Model
 # MAGIC
 # MAGIC Loaded via the native `mlflow.lightgbm` flavor rather than the generic
 # MAGIC `pyfunc` flavor, so prediction goes straight to the underlying LightGBM
@@ -81,8 +81,8 @@ model_uri = f"models:/{MODEL_NAME}@{MODEL_ALIAS}"
 model = mlflow.lightgbm.load_model(model_uri)
 
 client = mlflow.MlflowClient()
-champion_version = client.get_model_version_by_alias(MODEL_NAME, MODEL_ALIAS)
-print(f"Loaded model: {MODEL_NAME}, version {champion_version.version} (alias: {MODEL_ALIAS})")
+Awesome_version = client.get_model_version_by_alias(MODEL_NAME, MODEL_ALIAS)
+print(f"Loaded model: {MODEL_NAME}, version {Awesome_version.version} (alias: {MODEL_ALIAS})")
 
 # COMMAND ----------
 
@@ -453,7 +453,7 @@ forecast_df["forecast_id"] = (
 )
 forecast_df["prediction_timestamp"] = pd.Timestamp.now()
 forecast_df["model_name"] = MODEL_NAME
-forecast_df["model_version"] = champion_version.version
+forecast_df["model_version"] = Awesome_version.version
 
 # Bring category/store labels along for convenience -- the UI and GenAI layer
 # shouldn't need to join back to the dimension tables just to show a category name.
@@ -515,6 +515,6 @@ plt.show()
 # COMMAND ----------
 
 print("Batch inference completed successfully.")
-print(f"Model: {MODEL_NAME} version {champion_version.version}")
+print(f"Model: {MODEL_NAME} version {Awesome_version.version}")
 print(f"Forecast window: {forecast_dates[0].date()} to {forecast_dates[-1].date()}")
 print(f"Rows written: {len(forecast_df):,}")

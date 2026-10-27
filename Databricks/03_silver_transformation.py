@@ -37,7 +37,7 @@
 from pyspark.sql import functions as F
 from pyspark.sql.window import Window
 
-CATALOG = "sales_ai"
+CATALOG = "sales_nk"
 
 BRONZE_SCHEMA = "bronze"
 SILVER_SCHEMA = "silver"
@@ -528,12 +528,12 @@ print("Silver Delta tables created successfully.")
 # COMMAND ----------
 
 # MAGIC %sql
-# MAGIC SHOW TABLES IN sales_ai.silver;
+# MAGIC SHOW TABLES IN sales_nk.silver;
 
 # COMMAND ----------
 
 display(
-    spark.table("sales_ai.silver.sales_integrated").limit(20)
+    spark.table("sales_nk.silver.sales_integrated").limit(20)
 )
 
 # COMMAND ----------

@@ -7,7 +7,7 @@ from pydantic import BaseModel
 
 
 class ForecastRecord(BaseModel):
-    """One row from sales_ai.gold.forecast_results."""
+    """One row from sales_nk.gold.forecast_results."""
 
     forecast_id: str
     forecast_date: date
@@ -41,8 +41,8 @@ class HealthResponse(BaseModel):
 class ForecastPoint(BaseModel):
     """One point on a merged actual/forecast timeline.
 
-    actual_units is sourced from sales_ai.gold.sales_features (real observed
-    sales); predicted_units is sourced from sales_ai.gold.forecast_results
+    actual_units is sourced from sales_nk.gold.sales_features (real observed
+    sales); predicted_units is sourced from sales_nk.gold.forecast_results
     (model output). Exactly one of the two is populated per date.
     """
 
@@ -69,7 +69,7 @@ class ProductForecastGroup(BaseModel):
 
 
 class Product(BaseModel):
-    """One row from sales_ai.silver.products, for GET /products."""
+    """One row from sales_nk.silver.products, for GET /products."""
 
     product_id: str
     product_name: str
@@ -77,7 +77,7 @@ class Product(BaseModel):
 
 
 class Store(BaseModel):
-    """One row from sales_ai.silver.stores, for GET /stores."""
+    """One row from sales_nk.silver.stores, for GET /stores."""
 
     store_id: str
     store_name: str

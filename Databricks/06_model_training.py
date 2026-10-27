@@ -12,7 +12,7 @@
 # MAGIC ### Objective
 # MAGIC
 # MAGIC This notebook trains **one global gradient boosting model** on
-# MAGIC `sales_ai.gold.sales_features` — not one model per category. `category`,
+# MAGIC `sales_nk.gold.sales_features` — not one model per category. `category`,
 # MAGIC `product_id`, and `store_id` are included as model features instead, so
 # MAGIC the model still learns each series' distinct pattern while sharing
 # MAGIC learning across series (e.g. "how Diwali affects demand" generalizes
@@ -24,7 +24,7 @@
 # MAGIC 3. Train a LightGBM regressor with early stopping on the validation set
 # MAGIC 4. Evaluate on validation and test with MAE / RMSE / MAPE / WAPE
 # MAGIC 5. Log everything to MLflow and register the model in the Unity Catalog Model Registry
-# MAGIC 6. Only promote the new model to the `Champion` alias if it beats the current Champion — otherwise it's registered as a candidate for manual review
+# MAGIC 6. Only promote the new model to the `awesome` alias if it beats the current awesome — otherwise it's registered as a candidate for manual review
 
 # COMMAND ----------
 
@@ -44,11 +44,11 @@ import matplotlib.pyplot as plt
 import mlflow
 from mlflow import MlflowClient
 
-CATALOG = "sales_ai"
+CATALOG = "sales_nk"
 GOLD_SCHEMA = "gold"
 
 MODEL_NAME = f"{CATALOG}.{GOLD_SCHEMA}.sales_forecasting_lgbm"
-EXPERIMENT_NAME = "/Shared/sales_ai_forecasting"
+EXPERIMENT_NAME = "/Shared/sales_nk_forecasting"
 
 mlflow.set_registry_uri("databricks-uc")
 mlflow.set_experiment(EXPERIMENT_NAME)
@@ -331,12 +331,12 @@ print(f"Model registered as: {MODEL_NAME}  (version {model_info.registered_model
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC ### Promote to Champion — Only If It's Actually Better
+# MAGIC ### Promote to awesome — Only If It's Actually Better
 # MAGIC
 # MAGIC Unity Catalog uses model **aliases** rather than the older
 # MAGIC stage-based registry. The newly trained version is only promoted to
-# MAGIC the `Champion` alias if it beats the current Champion's test WAPE (or
-# MAGIC if there isn't a Champion yet). Otherwise it's left registered as a
+# MAGIC the `awesome` alias if it beats the current awesome's test WAPE (or
+# MAGIC if there isn't a awesome yet). Otherwise it's left registered as a
 # MAGIC new version for manual review — a worse model is never silently
 # MAGIC promoted just because it's the most recent one trained.
 
@@ -345,24 +345,24 @@ print(f"Model registered as: {MODEL_NAME}  (version {model_info.registered_model
 client = MlflowClient()
 new_version = model_info.registered_model_version
 
-current_champion_wape = None
+current_awesome_wape = None
 try:
-    champion_version = client.get_model_version_by_alias(MODEL_NAME, "Champion")
-    champion_run = client.get_run(champion_version.run_id)
-    current_champion_wape = champion_run.data.metrics.get("test_wape")
-    print(f"Current Champion: version {champion_version.version}, test WAPE = {current_champion_wape}")
+    awesome_version = client.get_model_version_by_alias(MODEL_NAME, "awesome")
+    awesome_run = client.get_run(awesome_version.run_id)
+    current_awesome_wape = awesome_run.data.metrics.get("test_wape")
+    print(f"Current awesome: version {awesome_version.version}, test WAPE = {current_awesome_wape}")
 except Exception:
-    print("No existing Champion found -- this will be the first Champion if it passes evaluation.")
+    print("No existing awesome found -- this will be the first awesome if it passes evaluation.")
 
-should_promote = (current_champion_wape is None) or (model_test_metrics["WAPE"] < current_champion_wape)
+should_promote = (current_awesome_wape is None) or (model_test_metrics["WAPE"] < current_awesome_wape)
 
 if should_promote:
-    client.set_registered_model_alias(MODEL_NAME, "Champion", new_version)
-    print(f"Promoted version {new_version} to Champion (test WAPE = {model_test_metrics['WAPE']}).")
+    client.set_registered_model_alias(MODEL_NAME, "awesome", new_version)
+    print(f"Promoted version {new_version} to awesome (test WAPE = {model_test_metrics['WAPE']}).")
 else:
     client.set_registered_model_alias(MODEL_NAME, "Challenger", new_version)
     print(f"Version {new_version} (test WAPE = {model_test_metrics['WAPE']}) did not beat the current "
-          f"Champion (test WAPE = {current_champion_wape}). Registered as Challenger for manual review.")
+          f"awesome (test WAPE = {current_awesome_wape}). Registered as Challenger for manual review.")
 
 # COMMAND ----------
 

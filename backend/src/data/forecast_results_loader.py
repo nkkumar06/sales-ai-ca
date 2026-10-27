@@ -9,7 +9,7 @@ from .databricks_client import get_connection
 # ============================================================
 # Databricks Gold Table
 # ============================================================
-CATALOG = "sales_ai"
+CATALOG = "sales_nk"
 SCHEMA = "gold"
 TABLE = "forecast_results"
 

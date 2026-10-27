@@ -58,10 +58,3 @@ cd frontend && npm run dev
 
 Frontend: `http://localhost:5173`
 
-## License
-
-MIT License
-
----
-
-**Follow along:** [AaiTech - Sandesh Hase](https://youtube.com/@sandesh-hase?si=oaopw_Sq6xZKDsca)

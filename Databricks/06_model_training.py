@@ -33,7 +33,7 @@
 
 # COMMAND ----------
 
-!pip install lightgbm
+pip install lightgbm
 
 # COMMAND ----------
 

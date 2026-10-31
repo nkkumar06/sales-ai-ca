@@ -31,7 +31,22 @@ export async function triggerPipeline(): Promise<PipelineTriggerResponse> {
 
 export async function uploadAndTriggerPipeline(files: File[]): Promise<PipelineUploadAndTriggerResponse> {
   const formData = new FormData()
-  files.forEach((file) => formData.append('files', file))
+  let salesFileAdded = false
+  let calendarFileAdded = false
+
+  files.forEach((file) => {
+    if (file.name.startsWith('sales_transactions')) {
+      if (salesFileAdded) throw new Error('Only one sales transactions CSV can be uploaded at a time.')
+      formData.append('sales_transactions_file', file)
+      salesFileAdded = true
+    } else if (file.name.startsWith('calendar_marketing_external')) {
+      if (calendarFileAdded) throw new Error('Only one calendar CSV can be uploaded at a time.')
+      formData.append('calendar_marketing_file', file)
+      calendarFileAdded = true
+    } else {
+      throw new Error(`Unsupported pipeline file: ${file.name}`)
+    }
+  })
   const { data } = await apiClient.post<PipelineUploadAndTriggerResponse>(
     '/pipeline/upload-and-trigger',
     formData,

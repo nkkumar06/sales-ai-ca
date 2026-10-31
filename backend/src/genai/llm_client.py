@@ -1,8 +1,8 @@
-"""Azure OpenAI client, shared by POST /forecast/explain and POST /chat.
+"""LLM client shared by POST /forecast/explain and POST /chat.
 
 Reads credentials from environment variables (loaded from .env locally via
-python-dotenv) -- never hardcode a key here. See .env.example for the
-required variable names.
+python-dotenv). Supports Azure OpenAI and Ollama's OpenAI-compatible API.
+See .env.example for configuration.
 """
 
 import os
@@ -10,7 +10,7 @@ from pathlib import Path
 from typing import Any, Optional
 
 from dotenv import load_dotenv
-from openai import AzureOpenAI
+from openai import AzureOpenAI, OpenAI
 from openai.types.chat import ChatCompletionMessage
 
 # Load .env from the project root explicitly, rather than relying on the
@@ -19,6 +19,9 @@ from openai.types.chat import ChatCompletionMessage
 # lives at backend/src/genai/llm_client.py -- .env is 3 levels up.
 load_dotenv(Path(__file__).resolve().parent.parent.parent / ".env")
 
+LLM_PROVIDER = os.getenv("LLM_PROVIDER", "azure").strip().lower()
+OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434/v1")
+OLLAMA_MODEL = os.getenv("OLLAMA_MODEL")
 AZURE_OPENAI_ENDPOINT = os.getenv("AZURE_OPENAI_ENDPOINT")
 AZURE_OPENAI_API_KEY = os.getenv("AZURE_OPENAI_API_KEY")
 AZURE_OPENAI_DEPLOYMENT_NAME = os.getenv("AZURE_OPENAI_DEPLOYMENT_NAME")
@@ -28,35 +31,54 @@ _client = None
 
 
 class LLMConfigError(RuntimeError):
-    """Raised when required Azure OpenAI environment variables are missing."""
+    """Raised when the selected LLM provider is unsupported or unconfigured."""
 
 
-def get_client() -> AzureOpenAI:
-    """Return a cached AzureOpenAI client, or raise LLMConfigError if unconfigured."""
+def get_client() -> OpenAI | AzureOpenAI:
+    """Return a cached client for the selected provider."""
 
     global _client
 
     if _client is None:
-        required = {
-            "AZURE_OPENAI_ENDPOINT": AZURE_OPENAI_ENDPOINT,
-            "AZURE_OPENAI_API_KEY": AZURE_OPENAI_API_KEY,
-            "AZURE_OPENAI_DEPLOYMENT_NAME": AZURE_OPENAI_DEPLOYMENT_NAME,
-        }
-        missing = [name for name, value in required.items() if not value]
-        if missing:
-            raise LLMConfigError(f"Missing Azure OpenAI environment variable(s): {', '.join(missing)}")
+        if LLM_PROVIDER == "ollama":
+            if not OLLAMA_MODEL:
+                raise LLMConfigError("Missing OLLAMA_MODEL environment variable.")
+            _client = OpenAI(base_url=OLLAMA_BASE_URL, api_key="ollama")
+        elif LLM_PROVIDER == "azure":
+            required = {
+                "AZURE_OPENAI_ENDPOINT": AZURE_OPENAI_ENDPOINT,
+                "AZURE_OPENAI_API_KEY": AZURE_OPENAI_API_KEY,
+                "AZURE_OPENAI_DEPLOYMENT_NAME": AZURE_OPENAI_DEPLOYMENT_NAME,
+            }
+            missing = [name for name, value in required.items() if not value]
+            if missing:
+                raise LLMConfigError(f"Missing Azure OpenAI environment variable(s): {', '.join(missing)}")
 
-        _client = AzureOpenAI(
-            azure_endpoint=AZURE_OPENAI_ENDPOINT,
-            api_key=AZURE_OPENAI_API_KEY,
-            api_version=AZURE_OPENAI_API_VERSION,
-        )
+            _client = AzureOpenAI(
+                azure_endpoint=AZURE_OPENAI_ENDPOINT,
+                api_key=AZURE_OPENAI_API_KEY,
+                api_version=AZURE_OPENAI_API_VERSION,
+            )
+        else:
+            raise LLMConfigError(f"Unsupported LLM_PROVIDER {LLM_PROVIDER!r}; use 'ollama' or 'azure'.")
 
     return _client
 
 
+def _model_name() -> str:
+    if LLM_PROVIDER == "ollama":
+        if not OLLAMA_MODEL:
+            raise LLMConfigError("Missing OLLAMA_MODEL environment variable.")
+        return OLLAMA_MODEL
+    if LLM_PROVIDER == "azure":
+        if not AZURE_OPENAI_DEPLOYMENT_NAME:
+            raise LLMConfigError("Missing AZURE_OPENAI_DEPLOYMENT_NAME environment variable.")
+        return AZURE_OPENAI_DEPLOYMENT_NAME
+    raise LLMConfigError(f"Unsupported LLM_PROVIDER {LLM_PROVIDER!r}; use 'ollama' or 'azure'.")
+
+
 def call_chat_json(system_prompt: str, user_message: str) -> str:
-    """Call the configured Azure OpenAI deployment in JSON mode.
+    """Call the configured model in JSON mode.
 
     Returns the raw response content (a JSON string, per response_format).
     Raises LLMConfigError if credentials are missing; propagates the
@@ -66,10 +88,8 @@ def call_chat_json(system_prompt: str, user_message: str) -> str:
 
     client = get_client()
 
-    # No `temperature` override -- some deployments (e.g. reasoning-tier models)
-    # only support the default value and reject any other.
     response = client.chat.completions.create(
-        model=AZURE_OPENAI_DEPLOYMENT_NAME,
+        model=_model_name(),
         response_format={"type": "json_object"},
         messages=[
             {"role": "system", "content": system_prompt},
@@ -97,7 +117,7 @@ def call_chat(
 
     client = get_client()
 
-    kwargs: dict[str, Any] = {"model": AZURE_OPENAI_DEPLOYMENT_NAME, "messages": messages}
+    kwargs: dict[str, Any] = {"model": _model_name(), "messages": messages}
     if tools:
         kwargs["tools"] = tools
         kwargs["tool_choice"] = "auto"
@@ -111,7 +131,7 @@ def call_chat(
 if __name__ == "__main__":
     import argparse
 
-    parser = argparse.ArgumentParser(description="Quick manual test for the Azure OpenAI client.")
+    parser = argparse.ArgumentParser(description="Quick manual test for the configured LLM provider.")
     parser.add_argument("--name", default="World", help="Name to greet in the test prompt")
     args = parser.parse_args()
 

@@ -34,8 +34,7 @@ export async function explainForecast(
   storeId: string,
   userQuestion?: string,
 ): Promise<ForecastExplanation> {
-  // Multiple Databricks queries plus an LLM call routinely take well over the
-  // client's default 10s timeout -- give this one significantly more room.
+  // Databricks queries and local LLM inference can take several minutes.
   const { data } = await apiClient.post<ForecastExplanation>(
     '/forecast/explain',
     {
@@ -43,7 +42,7 @@ export async function explainForecast(
       store_id: storeId,
       user_question: userQuestion,
     },
-    { timeout: 60000 },
+    { timeout: 300000 },
   )
   return data
 }

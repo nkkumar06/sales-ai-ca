@@ -92,6 +92,33 @@ GET /forecast/trend/all
 
 ---
 
+## Local LLM setup (Ollama)
+
+The `/forecast/explain` and free-text `/chat` endpoints use the LLM configured
+for the backend. To run them locally with Ollama:
+
+1. Install Ollama, start its server, and pull a model that supports both tool
+   calling and JSON output, for example `ollama pull qwen3:8b`.
+2. Set these values in `backend/.env`:
+
+   ```env
+   LLM_PROVIDER=ollama
+   OLLAMA_BASE_URL=http://localhost:11434/v1
+   OLLAMA_MODEL=qwen3:8b
+   ```
+
+3. Restart the backend. The Ollama model serves both endpoints; it does not
+   change the separate LightGBM model used by the Databricks forecasting
+   pipeline.
+
+The default base URL works when the backend runs directly on the same machine
+as Ollama. If the backend runs in Docker, use a host address reachable from the
+container (for example `http://host.docker.internal:11434/v1` on Docker Desktop).
+To switch back to Azure OpenAI, set `LLM_PROVIDER=azure` and provide the
+`AZURE_OPENAI_*` settings from `backend/.env.example`.
+
+---
+
 ## POST /forecast/explain
 
 GenAI explanation of an already-computed forecast (never generates numbers).

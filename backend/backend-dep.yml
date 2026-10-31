@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sales-backend
+  namespace: sales-ai
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: sales-backend
+  template:
+    metadata:
+      labels:
+        app: sales-backend
+    spec:
+      containers:
+        - name: backend
+          image: sales-ai-backend:local
+          imagePullPolicy: Never
+          ports:
+            - name: http
+              containerPort: 8000
+              protocol: TCP
+          envFrom:
+            - secretRef:
+                name: sales-backend-env
+          resources:
+            requests:
+              memory: 512Mi
+              cpu: 250m
+            limits:
+              memory: 1Gi
+              cpu: "1"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: sales-backend
+  namespace: sales-ai
+spec:
+  type: ClusterIP
+  selector:
+    app: sales-backend
+  ports:
+    - name: http
+      port: 8001
+      targetPort: http
+      protocol: TCP

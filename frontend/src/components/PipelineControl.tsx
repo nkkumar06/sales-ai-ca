@@ -32,6 +32,10 @@ function validateFilename(filename: string): string | null {
   return null
 }
 
+function getFileType(filename: string): string | null {
+  return ALLOWED_PREFIXES.find((prefix) => filename.startsWith(prefix)) ?? null
+}
+
 function statusLabel(status: PipelineStatusResponse): { text: string; tone: 'pending' | 'running' | 'success' | 'failed' } {
   const { life_cycle_state, result_state, state_message } = status
 
@@ -102,7 +106,20 @@ function PipelineControl() {
 
   function handleFileChange(event: React.ChangeEvent<HTMLInputElement>) {
     const selected = Array.from(event.target.files ?? [])
-    setFilePicks(selected.map((file) => ({ file, error: validateFilename(file.name) })))
+    const typeCounts = new Map<string, number>()
+    selected.forEach((file) => {
+      const type = getFileType(file.name)
+      if (type) typeCounts.set(type, (typeCounts.get(type) ?? 0) + 1)
+    })
+
+    setFilePicks(selected.map((file) => {
+      const type = getFileType(file.name)
+      const error = validateFilename(file.name)
+        ?? (type && (typeCounts.get(type) ?? 0) > 1
+          ? `Select at most one ${type} CSV at a time.`
+          : null)
+      return { file, error }
+    }))
   }
 
   const hasInvalidFile = filePicks.some((pick) => pick.error !== null)

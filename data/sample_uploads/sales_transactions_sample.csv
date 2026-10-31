@@ -1,0 +1,4 @@
+transaction_id,date,product_id,store_id,customer_segment_id,channel_id,units_sold,unit_price,gross_sales,discount_amount,net_sales,promotion_id,discount_percentage,inventory_available,stockout_flag,return_units,return_amount,true_demand_estimate
+T999999001,2026-04-01,P001,S01,Loyal Regular,Physical Store,5,12500.00,62500.00,6250.00,56250.00,Spring Refresh,10.00,120.00,False,0,0.00,5
+T999999002,2026-04-01,P002,S02,Budget Shopper,Online,20,180.00,3600.00,180.00,3420.00,Spring Refresh,5.00,300.00,False,0,0.00,20
+T999999003,2026-04-01,P003,S01,Value Seeker,Physical Store,8,1800.00,14400.00,0.00,14400.00,,0.00,75.00,False,0,0.00,8

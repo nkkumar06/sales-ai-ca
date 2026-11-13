@@ -40,3 +40,5 @@ node_modules/
 # Logs
 *.log
 logs/
+list1.txt
+mailmap.txt

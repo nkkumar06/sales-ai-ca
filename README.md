@@ -50,7 +50,7 @@ API docs: `http://localhost:8000/docs`
 
 ### 4. Start Frontend
 
-In a new terminal:
+In a new terminal-
 
 ```bash
 cd frontend && npm run dev
